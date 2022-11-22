@@ -1,7 +1,10 @@
-(ns thirty-one.core)
+(ns thirty-one.core
+  (:use [thirty-one.gamestate.builder]
+        [thirty-one.player]))
 
 
 (defn start-game 
-  [players & {:keys [mode]
-              :or {mode :default}}]
-  (println x "Hello, World!"))
+  [players]
+  (as-> (new-gamestate) gs
+    (reduce add-player gs players)
+    (deal gs)))
