@@ -1,18 +1,6 @@
 (ns thirty-one.input
   (:use [thirty-one.gamestate]))
 
-(defn regex-name
-  "too sleepy to actually do regex"
-  [name]
-  (clojure.string/replace 
-   name 
-   #"\sof\s|:clubs|:diamonds|:hearts|:spades"
-   {":clubs" "♣"
-    ":diamonds" "♦"
-    ":hearts" "♥"
-    ":spades" "♠"
-    " of " ""}))
-
 (defn- get-draw-or-knock-option
   [gamestate]
   (let [cards (->> gamestate :players first :hand (map (comp regex-name :name))(clojure.string/join " "))
@@ -40,20 +28,20 @@
           (discard gamestate (dec (Integer/parseInt selection)))
           (recur gamestate)))))
 
-(defn round-summary
-  [gamestate]
-  (loop [s ""
-         players (-> gamestate :players)]
-    (if (empty? players)
-      (format "%s\nThe following players lose a point:"
-              s
-              (filter player-loses-point? (repeat
-              (map
-      (recur (format "%s\n%s has %d points in hand:\n\t%s"
-                     s
-                     (-> players first :name)
-                     (-> players first :hand-points)
-                     (->> players first :hand (map (comp regex-name :name))(clojure.string/join " "))) (rest players)))))
+;; (defn round-summary
+;;   [gamestate]
+;;   (loop [s ""
+;;          players (-> gamestate :players)]
+;;     (if (empty? players)
+;;       (format "%s\nThe following players lose a point:"
+;;               s
+;;               (filter player-loses-point? (repeat
+;;               (map
+;;       (recur (format "%s\n%s has %d points in hand:\n\t%s"
+;;                      s
+;;                      (-> players first :name)
+;;                      (-> players first :hand-points)
+;;                      (->> players first :hand (map (comp regex-name :name))(clojure.string/join " "))) (rest players)))))))))
 
 
 (defn round-end

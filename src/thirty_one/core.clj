@@ -15,16 +15,14 @@
     (if (or (seq (blitzes gs))
             (= (-> gs :players first)
                (-> gs :knocking-player)))
-      (score gs)
+      gs
       (recur (-> gs (take-turn input-handler))))))
 
 (defn start-game 
   "Creates a new gamestate, adds all players, deals opening hands, and checks scores before moving to main gameplay loop"
   [players & input-handler]
   (-> (reduce add-player (new-gamestate) players)
-      (deal)
-      (gameplay-loop (or input-handler default-input-handler))))
-
+      (deal)))
 
       
     

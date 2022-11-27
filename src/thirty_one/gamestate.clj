@@ -8,105 +8,111 @@
    :deck (shuffle (build-deck))
    :discard nil
    :knocking-player nil
-   :players []})
+   :players []
+   :message "Setting up"})
 
 (defn add-player
   [gamestate player-name]
-  (update-in gamestate [:players] 
-             #(conj % {:name player-name
-                       :hand []
-                       :hand-points 0
-                       :lives 5})))
-
-(defn next-player
-  [gamestate]
-  (let [players (gamestate :players)]
-    (assoc gamestate 
-           :players (conj (subvec players 1) (first players)))))
-
-(defn next-turn
-  [gamestate]
   (-> gamestate
-      (next-player)
-      (assoc :awaiting :draw-or-knock)))
-
+      (assoc :message (format "Adding %s to the game" 
+                                 player-name))
+      (update-in [:players] 
+                 #(conj % {:name player-name
+                           :hand []
+                           :hand-points 0
+                           :lives 5}))))
+  
 (defn update-hand-points
-  [gamestate]
-  (let [hand (-> gamestate :players first :hand)
-        suits [:clubs :diamonds :hearts :spades]]
-    (assoc-in gamestate [:players 0 :hand-points]
-              (apply max (for [suit suits]
-                           (->> hand
-                                (filter #(= suit (:suit %)))
-                                (map :value)
-                                (apply +)))))))
+  [gamestate player-index]
+  (let [hand (-> gamestate :players (get player-index) :hand)
+        suits [:clubs :diamonds :hearts :spades]
+        max-points (apply max (for [suit suits]
+                               (->> hand
+                                    (filter #(= suit (:suit %)))
+                                    (map :value)
+                                    (apply +))))]
+    (-> gamestate
+        (assoc :message (format "Updating %s's points to %d"
+                                (-> gamestate :players (get player-index) :name)
+                                max-points))
+        (assoc-in [:players player-index :hand-points]
+                  max-points))))
 
 (defn update-all-hand-points
-  [gamestate]
-  (if (empty? (filter #(zero? (% :hand-points)) (gamestate :players)))
-    gamestate
-    (recur (-> gamestate update-hand-points next-player))))
+  ([gamestate]
+   (update-all-hand-points (assoc gamestate :message "Updating all points")
+                           0))
+  
+  ([gamestate player-index]
+   (if (= player-index (-> gamestate :players count))
+     gamestate
+     (recur (update-hand-points gamestate player-index) 
+            (inc player-index)))))
 
 (defn draw-from-deck
-  [gamestate]
+  [gamestate player-index]
   (let [deck (-> gamestate :deck)
-        hand (-> gamestate :players first :hand)]
+        hand (-> gamestate :players (get player-index) :hand)]
     (-> gamestate
-        (assoc-in [:players 0 :hand] 
+        (assoc :message (format "%s drew a card from the deck"
+                                (-> gamestate :players (get player-index) :name)))
+        (assoc-in [:players player-index :hand] 
                   (conj hand (first deck)))
         (assoc :deck (rest deck))
         (assoc :awaiting :discard))))
 
 (defn draw-from-discard
-  [gamestate]
+  [gamestate player-index]
   (let [card (-> gamestate :discard)]
     (-> gamestate
+        (assoc :message (format "%s drew %s from the discard"
+                                (-> gamestate :players (get player-index) :name)
+                                (regex-name card)))
         (assoc :discard nil)
-        (update-in [:players 0 :hand] 
+        (update-in [:players player-index :hand] 
                    #(conj % card))
         (assoc :awaiting :discard))))
 
 (defn discard
-  [gamestate index]
-  (let [hand (-> gamestate :players first :hand)
-        card (hand index)]
+  [gamestate player-index card-index]
+  (let [hand (-> gamestate :players (get player-index) :hand)
+        card (hand card-index)]
     (-> gamestate
         (assoc :discard card)
-        (assoc-in [:players 0 :hand] 
-                   (vec (remove #{card} hand)))
-        (update-hand-points)
+        (assoc-in [:players player-index :hand] 
+                  (vec (remove #{card} hand)))
+        (update-hand-points player-index)
         (assoc :awaiting :next-turn))))
 
 (defn knock
-  [gamestate]
+  [gamestate player-index]
+  {:pre [(nil? (gamestate :knocking-player))]}
   (-> gamestate
-      (assoc :kocking-player (-> gamestate :players first))
+      (assoc :knocking-player (-> gamestate :players (get player-index)))
       (assoc :awaiting :next-turn)))
-
+  
 (defn deal
   [gamestate]
   (loop [gs gamestate
-         cards-remaining (* 3 (-> gamestate :players count))]
-    (if (zero? cards-remaining)
+         deal-order (->> gamestate :players count range (repeat 3) flatten)]
+    (if (empty? deal-order)
       (-> gs
           (update-all-hand-points)
           (assoc-in [:discard] (-> gs :deck first))
           (assoc-in [:deck] (-> gs :deck rest))
           (assoc-in [:awaiting] :next-turn))
-      (recur (-> gs
-                 draw-from-deck
-                 next-player)
-             (dec cards-remaining)))))
+      (recur (draw-from-deck gs (first deal-order))
+             (rest deal-order)))))
 
 (defn empty-hands
-  [gamestate]
-  (loop [gs gamestate]
-    (if (empty? (-> gs :players first :hand))
-      gs
-      (recur (-> gs
-                 (assoc-in [:players 0 :hand] [])
-                 (assoc-in [:players 0 :hand-points] 0)
-                 next-player)))))
+  ([gamestate] (empty-hands gamestate 0))
+  ([gamestate player-index]
+   (if (= (-> gamestate :players count)
+          player-index)
+     gamestate
+     (recur (assoc-in gamestate [:players player-index :hand] []) 
+            (inc player-index)))))
+  
 
 (defn new-round
   "Shuffles a new deck, removes players who are no longer in the game, then deals"
@@ -123,12 +129,6 @@
                 (->> (gamestate :players)
                      (remove #(zero? (% :lives))) 
                      vec))))
-
-(defn update-all-hand-points
-  [gamestate]
-  (if (empty? (filter #(zero? (% :hand-points)) (gamestate :players)))
-    gamestate
-    (recur (-> gamestate update-hand-points next-player))))
 
 (defn blitzes
   [gamestate]
@@ -152,5 +152,5 @@
 
 (defn players-losing-point
   [gamestate]
-  (mapv #(-> gamestate :players (get %)) 
+  (mapv #(-> gamestate :players (get %))
         (losing-indexes gamestate)))

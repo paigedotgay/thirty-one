@@ -17,9 +17,19 @@
            :suit suit 
            :name (str (card :face) " of " suit))))
       
-;; I think I can do this with cool functional prog
 (defn build-deck []
   (for [suit [:spades :hearts :diamonds :clubs]
         face (flatten [(range 2 (inc 9)) :A :J :Q :K])]
         (build-card face suit)))
-    
+ 
+(defn regex-name
+  "too sleepy to actually do regex"
+  [name]
+  (clojure.string/replace 
+   name 
+   #"\sof\s|:clubs|:diamonds|:hearts|:spades"
+   {":clubs" "♣"
+    ":diamonds" "♦"
+    ":hearts" "♥"
+    ":spades" "♠"
+    " of " ""}))
