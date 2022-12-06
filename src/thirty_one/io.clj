@@ -61,3 +61,37 @@
                              :awaiting :draw-or-knock))
       :end-round (round-summary gamestate))))
   
+(defn get-actions
+  "Will hopefully help when writing other io handlers"
+  [{awaiting :awaiting
+    player-index :active-player
+    discard :discard
+    knocking-player :knocking-player
+    :as gamestate}]
+  (let [draw-knock-options ["Draw from the Deck" (str "Draw " (discard :name))]
+        cards (clojure.string/split (ev/hand->str gamestate player-index) #" ")]
+    (case awaiting
+      :draw-or-knock (zipmap (range 3) 
+                             (if-not knocking-player
+                               (conj draw-knock-options "Knock")
+                               draw-knock-options))
+      :discard (zipmap (range 4)
+                       (map #(str "Discard " %) cards))
+      {0 "Continue"})))
+
+(defn perform-action
+  [{awaiting :awaiting
+    player-index :active-player
+    discard :discard
+    knocking-player :knocking-player
+    :as gamestate} 
+   action-index]
+  {:pre [((set (keys (get-actions gamestate))) action-index)]}
+  (case awaiting
+    :draw-or-knock (#(% gamestate player-index) (case action-index ;; Now *this* is janky
+                                                  0 gs/draw-from-deck
+                                                  1 gs/draw-from-discard
+                                                  2 gs/knock))
+    :discard (gs/discard player-index action-index)
+    :start-turn (assoc gamestate :awaiting :draw-or-knock)
+    :end-round (-> gamestate (gs/new-round) (assoc :awaiting :start-turn))))
