@@ -12,6 +12,7 @@
 (defn start-game 
   "Creates a new gamestate, adds all players, deals opening hands, and checks scores before moving to main gameplay loop"
   [players & [input-handler]]
+  {:pre (< (count players) 11)}
   (-> (reduce gs/add-player (gs/new-gamestate) players)
       (gs/deal)
       (game-loop (or input-handler io/default-input-handler))))
