@@ -21,6 +21,6 @@
                     :spades "♠")))))
 
 (defn build-deck []
-  (map build-card
-       (flatten (repeat 4 [(range 2 (inc 10)) :J :Q :K :A]))
-       (cycle [:spades :hearts :diamonds :clubs])))
+  (shuffle (map build-card
+                (flatten (repeat 4 [(range 2 (inc 10)) :J :Q :K :A]))
+                (cycle [:spades :hearts :diamonds :clubs]))))

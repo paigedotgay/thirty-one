@@ -5,7 +5,7 @@
   "Creates the basic skeleton of the gamestate, including a shuffled deck."
   []
   {:awaiting nil
-   :deck (shuffle (build-deck))
+   :deck (build-deck)
    :discard nil
    :knocking-player nil
    :players []
