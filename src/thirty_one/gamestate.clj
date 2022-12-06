@@ -1,15 +1,34 @@
 (ns thirty-one.gamestate
-  (:use [thirty-one.cards]))
+  (:require [thirty-one.deck :as deck]
+            [thirty-one.evaluator :as ev]))
 
 (defn new-gamestate
   "Creates the basic skeleton of the gamestate, including a shuffled deck."
   []
-  {:awaiting nil
-   :deck (build-deck)
+  {:active-player 0
+   :awaiting nil
+   :deck (deck/build-deck)
    :discard nil
+   :round 0
    :knocking-player nil
-   :players []
-   :message "Setting up"})
+   :message "Setting up"
+   :players []})
+
+
+(defn dec-life
+  [gamestate player-index]
+  (update-in gamestate [:players player-index :lives] dec))
+
+(defn score
+  [gamestate]
+  (println "Scoring the game now...")
+  (loop [gs (assoc gamestate :awaiting :end-round)
+         losers (ev/losing-indexes gamestate)]
+    (if (empty? losers)
+      gs
+      (recur (dec-life gs (first losers))
+             (rest losers)))))
+
 
 (defn add-player
   [gamestate player-name]
@@ -21,6 +40,13 @@
                            :hand []
                            :hand-points 0
                            :lives 5}))))
+(defn next-player
+  [gamestate]
+  (if (= (gamestate :active-player) 
+         (dec (count (gamestate :players))))
+    0
+    (inc (gamestate :active-player))))
+
   
 (defn update-hand-points
   [gamestate player-index]
@@ -39,10 +65,7 @@
                   max-points))))
 
 (defn update-all-hand-points
-  ([gamestate]
-   (update-all-hand-points (assoc gamestate :message "Updating all points")
-                           0))
-  
+  ([gamestate] (update-all-hand-points gamestate 0))
   ([gamestate player-index]
    (if (= player-index (-> gamestate :players count))
      gamestate
@@ -51,7 +74,7 @@
 
 (defn draw-from-deck
   [gamestate player-index]
-  (let [deck (-> gamestate :deck)
+  (let [deck (gamestate :deck)
         hand (-> gamestate :players (get player-index) :hand)]
     (-> gamestate
         (assoc :message (format "%s drew a card from the deck"
@@ -76,20 +99,24 @@
 (defn discard
   [gamestate player-index card-index]
   (let [hand (-> gamestate :players (get player-index) :hand)
-        card (hand card-index)]
-    (-> gamestate
-        (assoc :discard card)
-        (assoc-in [:players player-index :hand] 
-                  (vec (remove #{card} hand)))
-        (update-hand-points player-index)
-        (assoc :awaiting :next-turn))))
+        card (hand card-index)
+        gs (-> gamestate
+               (assoc :discard card)
+               (assoc-in [:players player-index :hand] 
+                         (vec (remove #{card} hand)))
+               (update-hand-points player-index)
+               (assoc :active-player (next-player gamestate)))]
+    (if (ev/time-to-score? gs)
+      (score gs)
+      (assoc gs :awaiting :start-turn))))
 
 (defn knock
   [gamestate player-index]
   {:pre [(nil? (gamestate :knocking-player))]}
   (-> gamestate
-      (assoc :knocking-player (-> gamestate :players (get player-index)))
-      (assoc :awaiting :next-turn)))
+      (assoc :knocking-player player-index)
+      (assoc :active-player (next-player gamestate))
+      (assoc :awaiting :start-turn)))
   
 (defn deal
   [gamestate]
@@ -100,7 +127,7 @@
           (update-all-hand-points)
           (assoc-in [:discard] (-> gs :deck first))
           (assoc-in [:deck] (-> gs :deck rest))
-          (assoc-in [:awaiting] :next-turn))
+          (assoc-in [:awaiting] :start-turn))
       (recur (draw-from-deck gs (first deal-order))
              (rest deal-order)))))
 
@@ -118,39 +145,15 @@
   "Shuffles a new deck, removes players who are no longer in the game, then deals"
   [gamestate]
   ;; (deal) sets the :awaiting and :discard, we don't need to change them here.
-  (-> gamestate
-      (assoc-in [:deck]
-                (build-deck))
-      
-      (assoc-in [:knocking-player] 
-                nil)
-      
-      (assoc-in [:players]
-                (->> (gamestate :players)
+  (as-> gamestate gs
+      (assoc gs :deck (deck/build-deck))
+      (assoc gs :knocking-player nil)
+      (assoc-in gs [:players]
+                (->> (gs :players)
                      (remove #(zero? (% :lives))) 
-                     vec))))
+                     vec))
+      (update gs :round inc)
+      (empty-hands gs)
+      (deal gs)
+      (assoc gs :active-player (mod (gs :round) (count (gs :players))))))
 
-(defn blitzes
-  [gamestate]
-  (filter #(= 31 (% :hand-points)) (gamestate :players)))
-
-(defn player-loses-point?
-  [gamestate index]
-  (let [lowscore (->> gamestate :players (map :hand-points) (apply min))
-        highscore (->> gamestate :players (map :hand-points) (apply max))
-        knocker (gamestate :knocking-player)
-        player (-> gamestate :players (get index))
-        points (player :hand-points)]
-    (or (= points lowscore)
-        (and (or (= player knocker) (= 31 highscore))
-             (not= points highscore)))))
-
-(defn losing-indexes
-  [gamestate]
-  (filterv #(player-loses-point? gamestate %) 
-           (range (-> gamestate :players count))))
-
-(defn players-losing-point
-  [gamestate]
-  (mapv #(-> gamestate :players (get %))
-        (losing-indexes gamestate)))
