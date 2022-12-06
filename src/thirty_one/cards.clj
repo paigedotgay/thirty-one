@@ -2,34 +2,25 @@
 
 (defn build-card
   [face suit]
-  (let [card (case face
-               :A {:face "A"
-                   :value 11}
-               :J {:face "J"
-                   :value 10}
-               :Q {:face "Q"
-                   :value 10}
-               :K {:face "K"
-                   :value 10}
-               {:face face
-                :value face})]
-    (assoc card 
-           :suit suit 
-           :name (str (card :face) " of " suit))))
+  (-> {:face face :suit suit}
+      (assoc :value
+             (case face
+               (:J :Q :K) 10
+               :A 11
+               face)
       
+             :name 
+             (str (if (keyword? face)
+                    (name face)
+                    face)
+                  
+                  (case suit
+                    :clubs "♣"
+                    :diamonds "♦"
+                    :hearts "♥"
+                    :spades "♠")))))
+
 (defn build-deck []
-  (for [suit [:spades :hearts :diamonds :clubs]
-        face (flatten [(range 2 (inc 9)) :A :J :Q :K])]
-        (build-card face suit)))
- 
-(defn regex-name
-  "too sleepy to actually do regex"
-  [name]
-  (clojure.string/replace 
-   name 
-   #"\sof\s|:clubs|:diamonds|:hearts|:spades"
-   {":clubs" "♣"
-    ":diamonds" "♦"
-    ":hearts" "♥"
-    ":spades" "♠"
-    " of " ""}))
+  (map build-card
+       (flatten (repeat 4 [(range 2 (inc 10)) :J :Q :K :A]))
+       (cycle [:spades :hearts :diamonds :clubs])))
