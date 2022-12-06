@@ -3,12 +3,12 @@
 
 (defn- get-draw-or-knock-option
   [gamestate]
-  (let [cards (->> gamestate :players first :hand (map (comp regex-name :name))(clojure.string/join " "))
+  (let [cards (->> gamestate :players first :hand (map :name))
         discard (-> gamestate :discard :name)
         str-out (str "Cards in hand: " cards
                      "\nWhat do you want to do?\n"
                      "[draw]: Draw a card from the deck\n"
-                     "[discard]: Take " (regex-name discard) " from the discard pile\n"
+                     "[discard]: Take " (:name discard) " from the discard pile\n"
                      "[knock]: Knock")]
     (do (println str-out)
         (case (read-line)
@@ -19,7 +19,7 @@
 
 (defn get-discard-index 
   [gamestate]
-  (let [cards (->> gamestate :players first :hand (map (comp regex-name :name)))
+  (let [cards (->> gamestate :players first :hand (map :name))
         str-out (apply format 
                        "Discard a card\n[1]: %s\n[2]: %s\n[3]: %s\n[4]: %s"
                        cards)]

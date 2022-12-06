@@ -67,7 +67,7 @@
     (-> gamestate
         (assoc :message (format "%s drew %s from the discard"
                                 (-> gamestate :players (get player-index) :name)
-                                (regex-name card)))
+                                (:name card)))
         (assoc :discard nil)
         (update-in [:players player-index :hand] 
                    #(conj % card))
