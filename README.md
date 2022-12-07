@@ -1,9 +1,28 @@
 # thirty-one
-A Clojure library designed process games of 31/Trente et un/Scat
+A Clojure library designed process games of 31/Trente et un/Scat  
+[![Clojars Project](https://img.shields.io/clojars/v/com.github.qanazoga/thirty-one.svg)](https://clojars.org/com.github.qanazoga/thirty-one)
 
 ## Usage
-Runs a game of 31
-
+Leiningen/Boot
+```clj
+[com.github.qanazoga/thirty-one "0.1.0"]
+````
+Clojure CLI/deps.edn
+```clj
+com.github.qanazoga/thirty-one {:mvn/version "0.1.0"}
+```
+Gradle
+```kt
+implementation("com.github.qanazoga:thirty-one:0.1.0")
+```
+Maven
+```xml
+<dependency>
+    <groupId>com.github.qanazoga</groupId>
+    <artifactId>thirty-one</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
 ## Rules
 | Card       | Point Value |
 |------------|-------------|
