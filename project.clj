@@ -1,6 +1,6 @@
 (defproject thirty-one "0.0.0"
   :description "An engine to process games of 31/Trente et un/Scat"
-  :url "https://github.com/sea-foam/thirty-one"
+  :url "https://github.com/qanazoga/thirty-one"
   :license {:name "MIT"
             :url  "https://opensource.org/licenses/MIT"}
   :dependencies []
