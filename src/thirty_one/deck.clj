@@ -21,6 +21,6 @@
                     :spades "♠")))))
 
 (defn build-deck []
-  (shuffle (map build-card
-                (take 52 (cycle (into [:J :Q :K :A] (range 2 11))))
-                (cycle [:spades :hearts :diamonds :clubs]))))
+  (for [face (into [:J :Q :K :A] (range 2 11))
+        suit [:clubs :diamonds :hearts :spades]]
+        (build-card face suit)))
