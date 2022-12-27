@@ -1,4 +1,5 @@
-(ns thirty-one.deck)
+(ns thirty-one.deck
+  "builds cards and decks")
 
 (defn build-card
   [face suit]
@@ -23,4 +24,4 @@
 (defn build-deck []
   (shuffle (for [face (into [:J :Q :K :A] (range 2 11))
                  suit [:clubs :diamonds :hearts :spades]]
-             (build-card face suit)))
+             (build-card face suit))))

@@ -1,4 +1,5 @@
-(ns thirty-one.evaluator)
+(ns thirty-one.evaluator
+  "Gives info about the gamestate")
 
 (defn hand->str
   [gamestate player-index]

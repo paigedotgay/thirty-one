@@ -1,4 +1,5 @@
 (ns thirty-one.gamestate
+  "Builds and edits the gamestate"
   (:require [thirty-one.deck :as deck]
             [thirty-one.evaluator :as ev]))
 
