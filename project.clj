@@ -1,4 +1,4 @@
-(defproject com.github.qanazoga/thirty-one "0.1.0"
+(defproject com.github.qanazoga/thirty-one "1.0.0"
   :description "An engine to process games of 31/Trente et un/Scat"
   :url "https://github.com/qanazoga/thirty-one"
   :license {:name "MIT"
