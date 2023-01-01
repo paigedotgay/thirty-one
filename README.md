@@ -1,6 +1,6 @@
 # thirty-one
 A Clojure library designed process games of 31/Trente et un/Scat  
-[![Clojars Project](https://img.shields.io/clojars/v/com.github.qanazoga/thirty-one.svg)](https://clojars.org/com.github.qanazoga/thirty-one)
+[![Clojars Project](https://img.shields.io/clojars/v/com.qanazoga/thirty-one.svg)](https://clojars.org/com.qanazoga/thirty-one)
 
 ## Usage
 Leiningen/Boot
