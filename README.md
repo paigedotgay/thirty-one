@@ -5,22 +5,22 @@ A Clojure library designed process games of 31/Trente et un/Scat
 ## Usage
 Leiningen/Boot
 ```clj
-[com.github.qanazoga/thirty-one "0.1.0"]
+[com.qanazoga/thirty-one "1.0.0"]
 ````
 Clojure CLI/deps.edn
 ```clj
-com.github.qanazoga/thirty-one {:mvn/version "0.1.0"}
+com.qanazoga/thirty-one {:mvn/version "1.0.0"}
 ```
 Gradle
 ```kt
-implementation("com.github.qanazoga:thirty-one:0.1.0")
+implementation("com.qanazoga:thirty-one:1.0.0")
 ```
 Maven
 ```xml
 <dependency>
-    <groupId>com.github.qanazoga</groupId>
-    <artifactId>thirty-one</artifactId>
-    <version>0.1.0</version>
+  <groupId>com.qanazoga</groupId>
+  <artifactId>thirty-one</artifactId>
+  <version>1.0.0</version>
 </dependency>
 ```
 ## Rules
