@@ -1,6 +1,8 @@
-(ns thirty-one.deck)
+(ns thirty-one.deck
+  "builds cards and decks")
 
 (defn build-card
+  "Adds important info to a card, including the value and a pretty version of the suit"
   [face suit]
   (-> {:face face :suit suit}
       (assoc :value
@@ -20,7 +22,9 @@
                     :hearts "♥"
                     :spades "♠")))))
 
-(defn build-deck []
+(defn build-deck 
+  "Builds and shuffles a deck of cards."
+  []
   (shuffle (for [face (into [:J :Q :K :A] (range 2 11))
                  suit [:clubs :diamonds :hearts :spades]]
-             (build-card face suit)))
+             (build-card face suit))))
