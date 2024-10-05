@@ -70,5 +70,5 @@ If a player believes they have more points in one suit than any other player, th
 ### Round End
 At the end of the round all players reveal their hands and total up the highest value they can make using cards of a single suit.
 - The player (or in the event of a tie, players) with the lowest score loses a life.
-- If a player knocked, but the round ended due to another player getting 31, all players (besides the one with 31) lose a life.
+- If the round ended due to a player getting 31, all players (besides the one with 31) lose a life.
 - If a player knocked, but does not have the highest score, they lose a life.
